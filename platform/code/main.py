@@ -7,7 +7,6 @@
  CONTROLS
  --------
  left and right arrow keys to move horizontaly.
- space to jump and double jump.
 
 """
 
@@ -32,9 +31,6 @@ class Game:
                 if( event.type == QUIT or self.isOver ):
                     pg.quit()
                     sys.exit()
-                if( event.type == KEYDOWN ):
-                    if( event.key == K_SPACE ):
-                        self.level.jump_event()
 
             self.level.run()
                                 

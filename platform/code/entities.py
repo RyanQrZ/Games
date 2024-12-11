@@ -4,78 +4,77 @@ class Player( pg.sprite.Sprite ):
 
     def __init__( self ):
         super().__init__()
-        self.surf = pg.image.load( PLAYER_IMG )
-        self.rect = self.surf.get_rect()
+        self.image = PLAYER_IMG
+        self.rect = self.image.get_rect( midbottom = (100, SCREEN_H - 32) )
+        self.flip = False
 
         # Movement values
-        self.acc_val = 0.5
-        self.fric = -0.16
-        self.jumping = False
-        self.jump_val = -13
+        self.vel_y = 0
+        self.grav_acc = 0.6
+        self.jump_val = -15
+        self.horizontal_dist = 5
 
-        # Vectors
-        self.x_pos = random.randint( 0, SCREEN_W - 16)
-        self.pos = vec( (self.x_pos, SCREEN_H - TILE_SIZE) )
-        self.vel = vec(0, 0)
-
-    def move( self ):
-        self.acc = vec( 0, 0.6 )
+    def move( self, platforms ):
         key_pressed = pg.key.get_pressed()
-
+        delta_x, delta_y, scroll = 0, 0, 0
+        
         if( key_pressed[K_LEFT] ):
-            self.acc.x = -self.acc_val
+            delta_x = -self.horizontal_dist
+            self.flip = True
         if( key_pressed[K_RIGHT] ):
-            self.acc.x = self.acc_val
+            delta_x = self.horizontal_dist
+            self.flip = False
 
-        # Physic formulas
-        self.acc.x += self.vel.x * self.fric
-        self.vel += self.acc
-        self.pos += self.vel + self.acc * 0.5
+        # Gravity mechanic
+        self.vel_y += self.grav_acc
+        delta_y += self.vel_y
+
+        # Collision detection
+        for platform in platforms:
+            # Check if there is an overlap
+            hit = platform.rect.colliderect( self.rect.x,
+                                             self.rect.y + delta_y,
+                                             self.image.get_width(),
+                                             self.image.get_height() ) 
+            if( hit ):
+                # Check if if comming from top
+                if( self.rect.bottom < platform.rect.centery ):
+                    if( self.vel_y > 0 ):
+                        self.rect.bottom = platform.rect.top
+                        self.delta_y = 0
+                        self.jump()
 
         # Boundaries
-        if self.pos.x > SCREEN_W:
-            self.pos.x = 0
-        if self.pos.x < 0:
-            self.pos.x = SCREEN_W
+        if self.rect.left > SCREEN_W:
+            self.rect.left = 0
+        if self.rect.left < 0:
+            self.rect.right = SCREEN_W
 
-        self.rect.midbottom = self.pos
+        # Check if player bounced threshold
+        if( self.rect.top <= THRESH ):
+            # Check if jumping
+            if( self.vel_y < 0 ):
+                scroll = -delta_y
 
-    def jump( self, ground ):
-            hits = pg.sprite.spritecollide( self, ground, False )
-            
-            if( hits and not self.jumping ):
-                self.jumping = True
-                self.vel.y = self.jump_val
-                
-            if( self.jumping and not hits ):
-                self.vel.y = self.jump_val
-                self.jumping = False
+        # Update position
+        self.rect.y += delta_y + scroll
+        self.rect.x += delta_x
 
-    def update( self, platforms ):
-        
-        # Collision detection
-        hits = pg.sprite.spritecollide( self, platforms, False )
+        return scroll
 
-        if( self.vel.y > 0 ):
-            if( hits ):
-                self.vel.y = 0
-                self.pos.y = hits[0].rect.top + 1
-                self.jumping = False
-            
-        self.move()
-        
+    def jump( self ):
+        self.vel_y = self.jump_val
+#--------------------------------------------------------------------
 class Platform( pg.sprite.Sprite ):
 
-    def __init__( self, group, initial_h, final_h ):
+    def __init__( self, group, pos_x, pos_y ):
         super().__init__( group )
+        random_plat = random.randint(0, 2)
+        self.image = pg.transform.scale_by( PLATFORM_IMG[random_plat], 1.25 )
+        self.rect = self.image.get_rect()
+        self.rect.x = pos_x
+        self.rect.y = pos_y
 
-        # Dimensions
-        self.surf_w = random.randint(2, 8) * TILE_SIZE
-        self.surf = pg.Surface( (self.surf_w, TILE_SIZE) )
-        
-        self.surf.fill( (0, 0, 0) )
-
-        # Position
-        self.coord_x = random.randint( 0, SCREEN_W - self.surf.get_width() )
-        self.coord_y = random.randint( initial_h, final_h )
-        self.rect = self.surf.get_rect( topleft = (self.coord_x, self.coord_y) )
+    # Update vertical position
+    def update( self, scroll ):
+        self.rect.y += scroll
