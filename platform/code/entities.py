@@ -18,10 +18,10 @@ class Player( pg.sprite.Sprite ):
         key_pressed = pg.key.get_pressed()
         delta_x, delta_y, scroll = 0, 0, 0
         
-        if( key_pressed[K_LEFT] ):
+        if( key_pressed[KEY_ML] ):
             delta_x = -self.horizontal_dist
             self.flip = True
-        if( key_pressed[K_RIGHT] ):
+        if( key_pressed[KEY_MR] ):
             delta_x = self.horizontal_dist
             self.flip = False
 

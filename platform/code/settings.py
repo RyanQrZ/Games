@@ -7,8 +7,19 @@ SCREEN_W = 600
 SCREEN_H = 600
 THRESH = SCREEN_H / 3
 
+# Controls
+KEY_ML = K_LEFT
+KEY_MR = K_RIGHT
+KEY_CONT = K_SPACE
+
+# Fonts
+pg.font.init()
+FONT_BIG = pg.font.SysFont( "Verdana", 60 )
+FONT_SMALL = pg.font.SysFont( 'Lucida Sans', 24 )
+FONT_ESMALL = pg.font.SysFont( 'Lucida Sans', 30 )
+
 # Maximum amount of platforms
-MAX_PLAT = 101
+MAX_PLAT = 10
 
 # Images
 PLAYER_IMG = pg.image.load( join( '..', 'assets', 'player', 'idle', 'idle_0_1.png' ) )
